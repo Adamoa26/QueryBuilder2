@@ -1,0 +1,16 @@
+from setuptools import setup
+
+def readme():
+	with open('README.rst') as f:
+		return f.read()
+
+setup(name='querybuilder',
+	version='1.0.0.dev1',
+	description='Build Queries from emails for Bro-Master (In case ElasticSearch crashes) and ElasticSearch on top of Bro.',
+	url='https://github.com/Adamoa26/QueryBuilder/',
+      	author='Adam Elliott',
+      	author_email='adam.elliott@ou.edu',
+      	license='MIT',
+      	packages=['querybuilder'],
+	install_requires=['paramiko',],
+      	zip_safe=False)
