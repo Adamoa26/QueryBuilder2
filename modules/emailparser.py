@@ -78,6 +78,3 @@ class emailparser:
 		#Returns a list of the information gleaned from the email.
 		self.readLines(self.filename)
 		return self.lines
-
-
-		#Test Case:

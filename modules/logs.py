@@ -1,4 +1,4 @@
-import os, sys, datetime, time
+import os, sys, datetime, re
 #Adam Elliott, Nov 2014
 #This module represents generalized functions that are central to the operation of this project package.
 #Each has been generalized in order to eventually extend their functionality.
@@ -7,6 +7,7 @@ def exitGracefully(message):
 #Method takes a message, prints it to the screen and exits the program.
 #Intended as a debugging-errorcatching thing.
 	print message
+	print "Exiting program NOW."
 	sys.exit(0)
 	
 def dtToTimestamp(date):
@@ -43,31 +44,61 @@ def sameDay(datetime1, increment):
 	datetime1 /= 1000
 	date1 = datetime.date.fromtimestamp(datetime1)
 	date2 = datetime.date.fromtimestamp(datetime2)
-	date3 = date1.strftime("%Y.%m.%d")
-	date4 = date2.strftime("%Y.%m.%d")
+	date3 = date1.strftime("%Y-%m-%d")
+	date4 = date2.strftime("%Y-%m-%d")
 	
 	if date3 == date4:
 		return True
 	else:
 		return date4
-		
 
-def getlog(doc, search):
+def getlog(doc, search, ip):
 #This function will take the input of a system command, split it by lines, and search each line for the 'search' input.
 #Once it finds the 'search,' it will return the log itself.
 #Intended to search through an ElasticSearch Query output and ensure only a single and correct log is chosen to be processed later on.
-	i = 0
-	resp = doc.split()
-	for line in resp:
-		if line.find(search) != -1:
-			i = resp.index(line)
-	return resp[i]	
-	
+	i = None
+	if isinstance(doc, list) == False: 	#Built in variable. Checks to see if 'doc' is a list object-type.
+		resp = doc.split()
+	else:
+		resp = doc
+	if search == "resp":
+		for line in resp:
+			if line.find(ip) != -1:
+				i = resp.index(line)
+	elif search == "internal":
+		for line in resp:
+			if line.find("10.") != -1:
+				i = resp.index(line)
+	elif search == "mac":
+		for line in resp:
+			if line.find(ip):
+				i = resp.index(line)
+	if i == None:
+		resp = [None,None]
+	return resp[i]
+
+def brosearch(doc, search):
+	#Searches bro output logs for the correct log. Returns only a single log instead of two or more(which could potentially change).
+	newdoc = str(doc.strip())
+	respond = re.split('\s|\t', newdoc)
+	ret = [None] * 2
+	if search == "resp":
+		ret[0] = respond[4]
+		ret[1] = respond[5]
+	elif search == "internal":
+		ret[0] = respond[2]
+		ret[1] = respond[3]
+	elif search == "mac":
+		ret[0] = respond[6]
+		ret[1] = respond[0]
+	return ret
+
 def searchlog(doc, search):
 #This method will take a log from the getLog() method, split the log on commas, and search for the 'search' in addition to the "Timestamp"
 #Will reuturn an array of [The timestamp, search, search+1]
 #Intended to be used to grab ips and ports of RESP and ORIG, MAC from getLog() output.
-	searchMat = doc.split(",")
+	newdoc = str(doc.strip())
+	searchMat = re.split(',', newdoc)
 	respond = [None]*3
 	for line in searchMat:
 		if line.find("\"@timestamp\":") != -1:
@@ -82,23 +113,28 @@ def searchlog(doc, search):
 			continue
 	return respond
 
-def parse(doc, search):
+def parse(doc, search, type, ip = None):
 #This function intakes a doc=<system command return>, search=<desired string to find> and passes them through getLog() and searchLog() functions.
 #Returns an array of information. Typically [timestamp, IP, port, log].
 #Intended for the log to be appended to a master list of relevant logs.
 #The other elements will be processed together.
-	log = getlog(doc, search)
-	logInfo = searchlog(log, search)
-	logInfo.append(log)
+	if type == "ES":
+		log = getlog(doc, search, ip)
+		logInfo = searchlog(log, search)
+		logInfo.append(log)
+	elif type == "BRO":
+		log = getlog(doc, search, ip)
+		logInfo = brosearch(log, search)
+		logInfo.append(log)
 	return logInfo
-		
+
 def EScommand(query, find):
 #This function will build a system command and run it, returning the query.
 #Intakes query=<desired command> and find = <what to search for in the return>
 #Intended to run a query, input the result and 'find' into the parse() function and return the results.
 	f = os.popen(query)
 	ans = f.read()
-	result = parse(ans, find)
+	result = parse(ans, find, "ES")
 	return result
 	
 def buildQuery(indexDate, query, t1, t2):
@@ -160,13 +196,13 @@ def buildQuery(indexDate, query, t1, t2):
 }'"""
 	return query
 	
-def increment(timestamp, increment, arg1):
+def increment(timestamp, increment, arg1=None):
 #This Function is intended to return two timestamps seperated by a specified range.
 #Intended to help increment searches automatically.
 #returns an array of two timestamps. ["from","to"]
-	time = ["",""]
+	time = [None]*2
 	timestamp = int(timestamp)
-	if arg1 == None or arg1 == "":
+	if arg1 == None:
 		#arg1 = "None" returns [timestamp - increment, timestamp + increment]
 		time[0]= timestamp - increment
 		time[1] = timestamp + increment
@@ -182,4 +218,20 @@ def increment(timestamp, increment, arg1):
 		print "The variable \"arg1\" has no valid argument."
 	return time
 	
-	
+def doYouWantMyQuery(timestamp, uniqueid, ip, mac, logs):
+	#This is the ouput command that returns all the data in a readable format.
+	#Pretty self-explanatory, I think.
+	print "\n"
+	print "----------------------------------------Here is what we found------------------------------------------------"
+	print "\n"
+	print "For Notice #: " + str(uniqueid)
+	print "\n"
+	print "Timestamp: " + str(timestamp)
+	print "\n"
+	print "Mac Address: " + str(mac)
+	print "\n"
+	print "Internal ip: " + str(ip)
+	print "\n"
+	print "Here are the relevant logs:"
+	for each in logs:
+		print "\n" + each

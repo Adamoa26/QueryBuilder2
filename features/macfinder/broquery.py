@@ -141,6 +141,6 @@ class BroQuery:
 		logs.doYouWantMyQuery(self.timestamp, self.uniqID, intInfo[0], macInfo[0], self.relevantLogs)
 
 
-brotest = BroQuery(datetime.datetime(2014, 11, 21, 14, 46, 30, 700000), '129.15.131.114', '64014', '22298642748')
-brotest.twrk()
+#brotest = BroQuery(datetime.datetime(2014, 11, 21, 14, 46, 30, 700000), '129.15.131.114', '64014', '22298642748')
+#brotest.twrk()
 
