@@ -17,5 +17,5 @@ setup(name='querybuilder',
 		#	]
 		#},
       	packages=['querybuilder'],
-	install_requires=['paramiko','setuptools',],
+		install_requires=['paramiko','setuptools','pytz'],
       	zip_safe=False)

@@ -51,7 +51,7 @@ class emailparser:
 			if line.find("<Port>") == -1:
 				newline = logs.stripLine(line, self.stripList, ":")
 				self.lines[2] = newline
-		elif line.find("Reference ID:") != -1 or line.find("Notice ID:") != -1:
+		elif line.find("Reference ID:") != -1 or line.find("Notice ID:") != -1 or line.find("ID:") != -1 or line.find("CASE:"):
 			newline = logs.stripLine(line, self.stripList, ":")
 			self.lines[3] = newline
 		elif line.find("Notice ID #") != -1:
@@ -78,3 +78,8 @@ class emailparser:
 		#Returns a list of the information gleaned from the email.
 		self.readLines(self.filename)
 		return self.lines
+
+##Testing##
+
+#test = emailparser('/home/adam/Documents/ElasticSearch/Copyright_Emails/October_2014/Batch1/1-223777779')
+#print test.doAll()

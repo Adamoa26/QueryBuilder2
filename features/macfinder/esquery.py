@@ -19,8 +19,12 @@ class EsQuery:
 		
 #Functions
 	def orig_query(self):
-	#This function uses the output from emailparser and builds the first query in ES.
-		#Finding the time range in which to search.
+		'''
+		# This function uses the output from emailparser and builds the first query in ES.
+		# Finding the time range in which to search.
+		:return:
+		[timestamp, ip, port]
+		'''
 		increment = 60000	
 		time = logs.increment(self.timestamp, increment, None)
 		#Building the search query------------------------------#
@@ -86,7 +90,7 @@ class EsQuery:
 		EmailQuery = self.orig_query()
 		RespQuery = self.resp_query(EmailQuery[1], EmailQuery[2])
 		DhcpQuery = self.recursiveDHCP(RespQuery[1], None)
-		logs.doYouWantMyQuery(DhcpQuery[0],self.uniqID, self.ip,DhcpQuery[1], self.relevantLogs)
+		logs.doYouWantMyQuery(self.uniqID, self.ip,DhcpQuery[1], self.relevantLogs)
 	
 #test = ESQuery(datetime.datetime(2014, 11, 12, 20, 3, 34), '129.15.127.233', '25772', '175361360')
 #test.twrk()
