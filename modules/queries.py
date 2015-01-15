@@ -1,7 +1,7 @@
 import os.path
 from querybuilder.features.macfinder import esquery
 from querybuilder.features.macfinder import chalkboard
-from emailparserII import emailparser
+from emailparserII import parsechooser
 from modules.logs import exitGracefully
 
 '''
@@ -17,25 +17,28 @@ class esmacfinder:
 	def __init__(self, filepath):
 	#Initializes and uses command line input for the filepath.
 		self.filepath = filepath
+		self.searchinfo = []
 
 	#Functions
 	def run(self):
 		dir = os.path.isdir(self.filepath)
 		if dir == False:
-			email = emailparser(self.filepath)
-			parsed = email.doAll()
-			query = esquery.EsQuery(parsed[0], parsed[1], parsed[2], parsed[3])
-			query.twrk()
+			email = parsechooser(self.filepath)
+			parsed = email.execute()
+			for info in parsed:
+				query = esquery.EsQuery(info[0], info[1], info[2], info[3])
+				query.twrk()
 		else:
 			fileList = os.listdir(self.filepath)
 			for file in fileList:
 				if file.endswith(".txt"):
 					path = self.filepath + file
 					self.checkFile(path)
-					email = emailparser(path)
-					parsed = email.doAll()
-					query = esquery.EsQuery(parsed[0], parsed[1], parsed[2], parsed[3])
-					query.twrk()
+					email = parsechooser(self.filepath)
+					parsed = email.execute()
+					for info in parsed:
+						query = esquery.EsQuery(info[0], info[1], info[2], info[3])
+						query.twrk()
 				else:
 					continue
 
@@ -51,14 +54,16 @@ class bromacfinder:
 	#Constructor
 	def __init__(self, filepath):
 		self.filepath = filepath
+		self.searchinfo = []
 
 	def run(self):
 		dir = os.path.isdir(self.filepath)
 		if dir == False:
-			email = emailparser(self.filepath)
-			parsed = email.doAll()
-			query = chalkboard.BroQuery(parsed[0], parsed[1], parsed[2], parsed[3])
-			query.twrk()
+			email = parsechooser(self.filepath)
+			parsed = email.execute()
+			for info in parsed:
+				query = chalkboard.BroQuery(info[0], info[1], info[2], info[3])
+				query.twrk()
 		else:
 			last = self.filepath[-1]
 			if last != "/":
@@ -69,10 +74,11 @@ class bromacfinder:
 					path = self.filepath + file
 					self.checkFile(path)
 					print file
-					email = emailparser(path)
-					parsed = email.doAll()
-					query = chalkboard.BroQuery(parsed[0], parsed[1], parsed[2], parsed[3])
-					query.twrk()
+					email = parsechooser(self.filepath)
+					parsed = email.execute()
+					for info in parsed:
+						query = chalkboard.BroQuery(info[0], info[1], info[2], info[3])
+						query.twrk()
 				else:
 					continue
 

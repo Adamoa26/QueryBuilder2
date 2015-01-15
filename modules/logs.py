@@ -97,88 +97,18 @@ def comparetime(line, time):
 
 
 def getlog(doc, search, ip, timestamp = None):
-	'''
+	"""
 	# This function will take the input of a system command, split it by lines, and search each line for the 'search' input.
 	# Once it finds the 'search,' it will return the log itself.
 	# Intended to search through a query output and ensure only a single and correct log is chosen to be processed later on.
 	:returns
 	[log]
-	'''
-	i = None
-	change = 0
-	if isinstance(doc, list) == False: 	#Built in variable. Checks to see if 'doc' is a 'list' object-type.
-		resp = doc.split()
-	else:
-		resp = doc
-	if search == "internal":
-		for line in resp:
-			if line == None:
-				continue
-			if re.search(r"10\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)",line) != None:
-				if timestamp != None:
-					delta = comparetime(line, timestamp)
-					if delta != False and change == 0:
-						change = delta
-						i = resp.index(line)
-					elif delta != False and delta < change:
-						change = delta
-						i = resp.index(line)
-					else:
-						continue
-				else:
-					i = resp.index(line)
-					break
-	else:
-		for line in resp:
-			if line == None:
-				continue
-			if line.find(ip):
-				if timestamp != None:
-					delta = comparetime(line, timestamp)
-					if delta != False and change == 0:
-						change = delta
-						i = resp.index(line)
-					elif delta != False and delta < change:
-						change = delta
-						i = resp.index(line)
-					else:
-						continue
-				else:
-					i = resp.index(line)
-					break
-	if i == None or i > 15:
-		print "Couldn't find a result for " + search + " address."
-		return None
-	return resp[i]
+	"""
+	print doc
+	print search
+	print ip
+	print timestamp
 
-def brosearch(doc, search, ip):
-	'''
-	# Searches bro output logs for the correct log.
-	# Returns only a single log instead of two or more(which could potentially change).
-	:returns
-	[BroLog]
-	'''
-	newdoc = str(doc.strip())
-	respond = re.split('\s|\t', newdoc)
-	ret = [None] * 2
-	if search == "resp":
-		for i in respond:
-			if i.find(ip) != -1:
-				i = respond.index(ip)
-				if i == 2:
-					ret[0] = respond[4]
-					ret[1] = respond[5]
-				else:
-					continue
-			else:
-				continue
-	elif search == "internal":
-		ret[0] = respond[2]
-		ret[1] = respond[3]
-	elif search == "mac":
-		ret[0] = respond[6]
-		ret[1] = respond[0]
-	return ret
 
 def searchlog(doc, search):
 	'''
@@ -219,13 +149,6 @@ def parse(doc, search, type, ip = None, timestamp = None):
 			return None
 		else:
 			loginfo = searchlog(log, search)
-			loginfo.append(log)
-	elif type == "BRO":
-		log = getlog(doc, search, ip, timestamp)
-		if log == None:
-			return None
-		else:
-			loginfo = brosearch(log, search, ip)
 			loginfo.append(log)
 	else:
 		loginfo = None
